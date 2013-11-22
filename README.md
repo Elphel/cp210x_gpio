@@ -15,8 +15,8 @@ A patch to the CP210x USB to UART Bridges driver that adds GPIO pins control by 
 
 2. Reload driver (from the built directory):
 
-        sudo rmmod 210x
-        sudo insmod 210x.ko
+        sudo rmmod cp210x
+        sudo insmod cp210x.ko
 
 ## Program GPIO_MAS
 1. Examples:
