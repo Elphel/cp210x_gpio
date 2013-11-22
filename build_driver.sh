@@ -36,5 +36,5 @@ Now to reload the driver type:
   sudo rmmod cp210x
   sudo insmod cp210x.ko
 Then try the script:
-  ./cp210x_gpio.py [-d /dev/ttyUSB0] [-m 0xf] 0xf
+  sudo ./cp210x_gpio.py [-d /dev/ttyUSB0] [-m 0xf] 0xf
 "
