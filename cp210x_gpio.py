@@ -31,7 +31,7 @@ __maintainer__ = "Oleg Dzhimiev"
 __email__ = "oleg@elphel.com"
 __status__ = "Released"
 
-import array, fcntl
+import array, fcntl, os, errno
 import argparse # http://docs.python.org/2/howto/argparse.html
 
 IOCTL_GPIOGET = 0x8000
@@ -39,20 +39,26 @@ IOCTL_GPIOSET = 0x8001
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-d', '--device', default="/dev/ttyUSB0", help='USB device. Default: /dev/ttyUSB0')
-parser.add_argument("gpio_value", help="hex value for GPIO. Example (GPIO[3:0]): 0xf - all 1's, 0x0 - all 0's")
+parser.add_argument("gpio_value", default=None, nargs='?', help="hex value for GPIO. Example (GPIO[3:0]): 0xf - all 1's, 0x0 - all 0's. If not specified - read GPIO only")
 parser.add_argument('-m', '--mask', default="0xff",help='hex value for masking out GPIO bits: 1 - enable rewrite, 0 - disable. Example (GPIO[3:0]): -m 0xf')
 args = parser.parse_args()
-    
 device=args.device
-mask = int(args.mask,0)
-gpio = (int(args.gpio_value,0)<<16)|mask
+if args.gpio_value is None:
+    mask=0
+    gpio=0xff
+else:    
+    mask = int(args.mask,0)
+    gpio = (int(args.gpio_value,0)<<16)|mask
 
-print ('Target GPIO value:'),gpio
+print ('Target GPIO value: 0x%x, mask: 0x%x'%(gpio,mask))
+exit (0)    
 
 try:
     fd = open(device, 'r+')
-except:
-    raise Exception(str(device)+' is not present')
+except IOError, ioex:
+    if (errno.errorcode[ioex.errno]=='EACCES'):
+        print "\nDid you forget to use 'sudo' ?\n"
+    raise Exception(str(device)+' - '+os.strerror(ioex.errno))
 
 buf = array.array('l', [0])
 fcntl.ioctl(fd, IOCTL_GPIOGET, buf, 1)
