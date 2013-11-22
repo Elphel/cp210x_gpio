@@ -22,11 +22,11 @@ A patch to the CP210x USB to UART Bridges driver that adds GPIO pins control by 
 1. Examples:
     * Set all 1's:
 
-            ./cp210x_gpio.py -d /dev/ttyUSB0 -m 0xff 0xff
+            sudo ./cp210x_gpio.py -d /dev/ttyUSB0 -m 0xff 0xff
 
     * Set GPIO[3]=1, others - 0:
     
-            ./cp210x_gpio.py -d /dev/ttyUSB1 -m 0xff 0x08
+            sudo ./cp210x_gpio.py -d /dev/ttyUSB1 -m 0xff 0x08
     
 ## Changes in the driver
 * Changes in the driver cp210x.c are based on the patch found [here](https://lkml.org/lkml/2012/5/1/2)
