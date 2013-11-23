@@ -44,14 +44,14 @@ parser.add_argument('-m', '--mask', default="0xff",help='hex value for masking o
 args = parser.parse_args()
 device=args.device
 if args.gpio_value is None:
-    mask=0
-    gpio=0xff
+    mask = 0x00
+    gpio = (0xff<<16)|mask
+
 else:    
     mask = int(args.mask,0)
     gpio = (int(args.gpio_value,0)<<16)|mask
 
 print ('Target GPIO value: 0x%x, mask: 0x%x'%(gpio,mask))
-exit (0)    
 
 try:
     fd = open(device, 'r+')
@@ -64,8 +64,10 @@ buf = array.array('l', [0])
 fcntl.ioctl(fd, IOCTL_GPIOGET, buf, 1)
 print ('Old GPIO value:'),hex(buf[0])
 
+if args.gpio_value is None:
+  exit (0)
+  
 buf[0] = gpio
-
 fcntl.ioctl(fd, IOCTL_GPIOSET, buf, 1)
 fcntl.ioctl(fd, IOCTL_GPIOGET, buf, 1)
 print ('New GPIO value:'),hex(buf[0])
