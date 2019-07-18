@@ -3,8 +3,6 @@
 CP210X_NAME="cp210x.c"
 CP210X_ADDRESS="https://git.kernel.org/cgit/linux/kernel/git/stable/linux-stable.git/plain/drivers/usb/serial/cp210x.c?id=refs/tags/v"
 
-PATCH_NAME="cp210x.patch"
-
 LINUX_KERNEL_VERSION=$(uname -r | cut -f1 -d"-")
 LKV_P1=$(echo $LINUX_KERNEL_VERSION | cut -f1 -d".")
 LKV_P2=$(echo $LINUX_KERNEL_VERSION | cut -f2 -d".")
@@ -14,6 +12,14 @@ if [ $LKV_P3 = 0 ]; then
   CP210X_VERSION=$(echo "$LKV_P1.$LKV_P2")
 else
   CP210X_VERSION=$(echo "$LKV_P1.$LKV_P2.$LKV_P3")
+fi
+
+if [ $LKV_P1 -le 4 ] && [ $LKV_P2 -lt 9 ]; then
+  echo "Selecting patch for kernel <4.9.0!"
+  PATCH_NAME="cp210x.patch"
+else
+  echo "Selecting patch for kernel 4.9+!"
+  PATCH_NAME="cp210x_kernel_4.9.x+.patch"
 fi
 
 #uncomment if patch doesn't work 

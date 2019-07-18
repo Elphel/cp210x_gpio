@@ -1,0 +1,97 @@
+--- a/cp210x.c	2019-07-18 13:10:09.000000000 -0600
++++ b/cp210x.c	2019-07-18 13:06:25.000000000 -0600
+@@ -31,6 +31,8 @@
+  */
+ static int cp210x_open(struct tty_struct *tty, struct usb_serial_port *);
+ static void cp210x_close(struct usb_serial_port *);
++static int cp210x_ioctl(struct tty_struct *tty,
++	unsigned int cmd, unsigned long arg);
+ static void cp210x_get_termios(struct tty_struct *, struct usb_serial_port *);
+ static void cp210x_get_termios_port(struct usb_serial_port *port,
+ 	tcflag_t *cflagp, unsigned int *baudp);
+@@ -245,6 +247,7 @@
+ 	.bulk_out_size		= 256,
+ 	.open			= cp210x_open,
+ 	.close			= cp210x_close,
++        .ioctl			= cp210x_ioctl,
+ 	.break_ctl		= cp210x_break_ctl,
+ 	.set_termios		= cp210x_set_termios,
+ 	.tx_empty		= cp210x_tx_empty,
+@@ -262,6 +265,10 @@
+ 	&cp210x_device, NULL
+ };
+ 
++/* IOCTLs */
++#define IOCTL_GPIOGET	 0x8000
++#define IOCTL_GPIOSET	 0x8001
++
+ /* Config request types */
+ #define REQTYPE_HOST_TO_INTERFACE	0x41
+ #define REQTYPE_INTERFACE_TO_HOST	0xc1
+@@ -867,6 +874,66 @@
+ 	return !count;
+ }
+ 
++// Elphel
++static int cp210x_ioctl(struct tty_struct *tty, unsigned int cmd, unsigned long arg)
++{
++	struct usb_serial_port *port = tty->driver_data;
++	struct usb_serial *serial = port->serial;
++
++	int result = 0;
++	unsigned int latch_setting = 0;
++        int bufsize = 1;
++
++	// usb_control_msg used to be able to read to statically allocated buffer
++	// now it does not, have to create this buffer
++	// https://stackoverflow.com/questions/52685669/usb-control-msg-returns-eagain
++	void *dmabuf;
++
++	dmabuf = kmalloc(bufsize, GFP_KERNEL);
++	if (!dmabuf)
++            return -ENOMEM;
++
++	switch (cmd) {
++	    case IOCTL_GPIOGET:
++		result = usb_control_msg(
++			      serial->dev,
++			      usb_rcvctrlpipe(serial->dev, 0),
++			      CP210X_VENDOR_SPECIFIC,
++			      REQTYPE_DEVICE_TO_HOST,
++			      CP210X_READ_LATCH,
++			      cp210x_interface_num(serial),
++			      dmabuf, bufsize,
++			      USB_CTRL_GET_TIMEOUT);
++		if (result != bufsize)
++		    return -EPROTO;
++                memcpy(&latch_setting, dmabuf, bufsize);
++		*(unsigned long *)arg = (unsigned long)latch_setting;
++		return 0;
++	    break;
++	    case IOCTL_GPIOSET:
++		latch_setting = *(unsigned int *)arg & 0x000000FF;
++		//why [23:16] bits are taken for value is unknown
++		latch_setting |= (*(unsigned int *)arg & 0x00FF0000) >> 8;
++
++		result = usb_control_msg(
++			      serial->dev,
++			      usb_sndctrlpipe(serial->dev, 0),
++			      CP210X_VENDOR_SPECIFIC,
++			      REQTYPE_HOST_TO_DEVICE,
++			      CP210X_WRITE_LATCH,
++			      latch_setting,
++			      NULL, 0,
++			      USB_CTRL_SET_TIMEOUT);
++		if (result != 0)
++		    return -EPROTO;
++		return 0;
++	    break;
++	    default:
++	    break;
++	}
++	return -ENOIOCTLCMD;
++}
++
+ /*
+  * cp210x_get_termios
+  * Reads the baud rate, data bits, parity, stop bits and flow control mode
