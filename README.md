@@ -2,7 +2,8 @@
 A patch to the CP210x USB to UART Bridges driver that adds GPIO pins control by implementing ioctl function and a python script to program devices.
 
 ## Supported OS
-* Kubuntu Linux 13.04 (kernel 3.8.0-32)
+* Kubuntu Linux 13.04 (kernel 3.8)
+* Kubuntu Linux 16.04 (kernel 4.15)
 
 ## Tested devices
 * CP2103
