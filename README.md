@@ -39,5 +39,5 @@ A patch to the CP210x USB to UART Bridges driver that adds GPIO pins control by 
     * 3.x.x: GPIO_VALUE=arg[15: 8], GPIO_MASK=arg[7:0]
 
 ## Links
-* [Silabs CP210x USB to UART Bridge VCP Drivers](http://www.silabs.com/products/mcu/pages/usbtouartbridgevcpdrivers.aspx) - supported kernels 2.6.x, 3.x.x (but 3.x.x are not up-to-date - cannot be built in 3.8.0)
+* [Silabs CP210x USB to UART Bridge VCP Drivers](http://www.silabs.com/products/mcu/pages/usbtouartbridgevcpdrivers.aspx) - supported kernels 2.6.x, 3.x.x, 4.x.x..
 * [cp210x: Add ioctl for GPIO support](https://lkml.org/lkml/2012/5/1/2) - patch
